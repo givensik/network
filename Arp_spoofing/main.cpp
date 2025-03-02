@@ -144,8 +144,6 @@ int main(int argc, char* argv[]) {
    }
 
    printf("I Found victim's mac!\n");
-   // 라우터 mac주소 = 00:50:56:eb:11:13
-
 
    printf("#################\n");
    printf("Start Attack!\n");
@@ -284,7 +282,7 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
    memcpy(new_packet, packet, header->len);
 
    // 목적지 MAC 주소를 게이트웨이의 MAC 주소로 변경
-   uint8_t gateway_mac[ETHER_ADDR_LEN] = {0x00, 0x50, 0x56, 0xeb, 0x11, 0x13};
+   uint8_t gateway_mac[ETHER_ADDR_LEN] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
    memcpy(new_packet, gateway_mac, ETHER_ADDR_LEN); // 새로운 목적지 MAC 주소 설정
 
    // 패킷 전송 로직 (예: 소켓을 통해)
